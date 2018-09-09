@@ -1,0 +1,19 @@
+.col-1 {
+    display: inline-block;
+    width: 80px;
+    height: 25px;
+    /* border: solid 1px; */
+}
+.col-2 {
+    display: inline-block;
+    width: 200px;
+    height: 25px;
+    /* border: solid 1px; */
+}
+
+.col-3 {
+    display: inline-block;
+    width: 100px;
+    height: 25px;
+    /* border: solid 1px; */
+}

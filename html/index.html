@@ -1,0 +1,185 @@
+<!-- 
+     Web Bluetooth API を使ってブラウザだけでMicro:bitとBLE通信してみる。
+     https://shimz.me/blog/microbit/5456
+     を参考にさせていただきました。
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Language" content="ja">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <meta http-equiv="Content-Script-Type" content="text/javascript"> 
+<title>Web Bluetoothを使ったLEDバー制御サンプル</title>
+<link rel="stylesheet" type="text/css" href="./css/demo.css">
+</head>
+ 
+<body>
+<h1></h1>
+<div>
+  <div>
+    <span class="col-1">Control:</span>
+    <div class="col-2">
+      <button id="connect">connect</button>
+      <button id="disconnect">disconnect</button><br>
+    </div>
+    <span class="col-3" id="ctrl_txt">disconnect</span><br>
+  </div>
+  <div>
+    <span class="col-1">Length:</span>
+    <input class="col-2" type="range" id="len" min="0" max="40"  step="1" value="20">
+    <span class="col-3" id="len_txt">20</span><br>
+  </div>
+  <div>
+    <span class="col-1">Hue:</span>
+    <input class="col-2" type="range" id="hue" min="0" max="359" step="1" value="0">
+    <span class="col-3" id="hue_txt">0</span><br>
+  </div>
+  <div>
+    <span class="col-1">Bright:</span>
+    <input class="col-2" type="range" id="br"  min="0" max="100" step="1" value="10">
+    <span class="col-3" id="br_txt">10</span><br>
+  </div>
+</div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>    
+    
+<script>
+var bluetoothDevice;
+var characteristic;
+ 
+//micro:bit UART
+var UART_SERVICE_UUID            = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+var UART_TX_CHARACTERISTIC_UUID  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
+
+// イベントリスナー
+d3.select("#connect").on("click", connect);
+d3.select("#disconnect").on("click", disconnect);
+d3.select("#len").on("input", slider_change);
+d3.select("#hue").on("input", slider_change);
+d3.select("#br").on("input",  slider_change);
+
+//chibi:bitに接続する
+function connect() {
+  let options = {};
+  //options.acceptAllDevices = true;
+
+  options.filters = [
+    {services: [UART_SERVICE_UUID]},
+    {name: "kirakirabit"}
+  ];
+  
+  navigator.bluetooth.requestDevice(options)
+  .then(device => {
+    bluetoothDevice = device;
+    console.log("device", device);
+    return device.gatt.connect();
+  })
+  .then(server =>{
+    console.log("server", server)
+    return server.getPrimaryService(UART_SERVICE_UUID);
+  })
+  .then(service => {
+    console.log("service", service)
+    return service.getCharacteristic(UART_TX_CHARACTERISTIC_UUID)
+  })
+  .then(chara => {
+    console.log("characteristic", chara)
+    //alert("BLE接続が完了しました。");
+    document.getElementById("ctrl_txt").innerHTML = "connected.";
+    characteristic = chara;
+  })  
+  .catch(error => {
+    console.log(error);
+    document.getElementById("ctrl_txt").innerHTML = error;
+  });    
+}
+ 
+//LEDに表示するメッセージを送信
+function update_color(r, g, b, len) {
+
+  if (!bluetoothDevice || !bluetoothDevice.gatt.connected || !characteristic) return ;
+
+  var ary_buffer = new Uint8Array(4);
+  ary_buffer[0] = r;
+  ary_buffer[1] = g;
+  ary_buffer[2] = b;
+  ary_buffer[3] = len;
+
+  characteristic.writeValue(ary_buffer);
+}
+
+//BLE切断処理
+function disconnect() {
+  document.getElementById("ctrl_txt").innerHTML = "disconnect.";
+
+  if (!bluetoothDevice || !bluetoothDevice.gatt.connected) return ;
+  bluetoothDevice.gatt.disconnect();
+}
+
+//スライダー操作
+function slider_change(){
+  var len = document.getElementById("len");
+  var lentxt = document.getElementById("len_txt");
+  var hue = document.getElementById("hue");
+  var huetxt = document.getElementById("hue_txt");
+  var br = document.getElementById("br");
+  var brtxt = document.getElementById("br_txt");
+
+  huetxt.innerHTML = hue.value;
+  lentxt.innerHTML = len.value;
+  brtxt.innerHTML  = br.value;
+
+  var rgb = hsv2rgb(hue.value, 100, br.value);
+
+  update_color(rgb.r, rgb.g, rgb.b, len.value);
+}
+
+// https://www.petitmonte.com/javascript/rgb_hsv_convert.html
+// HSV(HSB)色空間からRGB色空間へ変換する 
+//  h(hue)       : 色相/色合い   0-360度の値
+//  s(saturation): 彩度/鮮やかさ 0-100%の値
+//  v(Value)     : 明度/明るさ   0-100%の値 
+//  ※v は b(Brightness)と同様 
+function hsv2rgb(h, s, v){
+  var max = v;
+  var min = max - ((s / 255) * max);
+  var rgb = {'r':0,'g':0,'b':0};  
+  
+  if (h == 360){
+    h = 0;
+  }
+  
+  s = s / 100;   
+  v = v / 100;   
+  
+  if (s == 0){
+    rgb.r = v * 255;
+    rgb.g = v * 255;
+    rgb.b = v * 255;
+    return rgb;
+  } 
+  
+  var dh = Math.floor(h / 60);
+  var p = v * (1 - s);
+  var q = v * (1 - s * (h / 60 - dh));
+  var t = v * (1 - s * (1 - (h / 60 - dh)));
+  
+  switch (dh){
+   case 0 : rgb.r = v; rgb.g = t; rgb.b = p;  break;
+   case 1 : rgb.r = q; rgb.g = v; rgb.b = p;  break;
+   case 2 : rgb.r = p; rgb.g = v; rgb.b = t;  break;
+   case 3 : rgb.r = p; rgb.g = q; rgb.b = v;  break;
+   case 4 : rgb.r = t; rgb.g = p; rgb.b = v;  break;
+   case 5 : rgb.r = v; rgb.g = p; rgb.b = q;  break
+  }   
+  
+  rgb.r =  Math.round(rgb.r * 255);
+  rgb.g =  Math.round(rgb.g * 255);
+  rgb.b =  Math.round(rgb.b * 255);
+  return rgb; 
+}
+
+</script>    
+</body>
+</html>
