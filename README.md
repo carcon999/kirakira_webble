@@ -1,53 +1,58 @@
-# �T�v
-���̃\�t�g�E�F�A�́AWeb Bluetooth API�𗘗p���A�u���E�U�iChrome�j����Amicro:bit�ɐڑ����ꂽNeopixel�n��LED���R���g���[�����邽�߂̃T���v���v���O�����ł��B
+# 概要
+このソフトウェアは、Web Bluetooth APIを利用し、ブラウザ（Chrome）から、micro:bitに接続されたNeopixel系のLEDをコントロールするためのサンプルプログラムです。
 
 ![Image](https://raw.githubusercontent.com/carcon999/kirakira_webble/master/img/general.png)
 
-�\�t�g�E�F�A�́A2��ނɂ킩��܂��B
-* micro:bit�ɔz�u����Arduino IDE�ŊJ�����ꂽ�\�t�g
+ソフトウェアは、2種類にわかれます。
+* micro:bitに配置するArduino IDEで開発されたソフト
   https://github.com/carcon999/kirakira_webble/tree/master/kirakira_webble
 
-* Chrome�ŌĂяo����邱�ƂɂȂ�AWeb Bluetooth API�𗘗p����Javascript
+* Chromeで呼び出されることになる、Web Bluetooth APIを利用したJavascript
   https://github.com/carcon999/kirakira_webble/tree/master/html
 
-# �r���h���@(micro:bit)
-�܂��Amicro:bit�ɔz�u����v���O�������r���h����K�v������܂��B
-������Ő������Ă���r���h���@�� 1. �`�@3. �̎菇��Arduino IDE���������Ă��������B
+# ビルド方法(micro:bit)
+まず、micro:bitに配置するプログラムをビルドする必要があります。
+こちらで説明しているビルド方法の 1. ～　3. の手順でArduino IDEを準備してください。
 https://github.com/carcon999/kirabitDemo/blob/master/README.md
 
-�r���h�����{������Amicro:bit��USB�P�[�u����ڑ����A�������݂����{���܂��B
+ビルドを実施したら、micro:bitにUSBケーブルを接続し、書き込みを実施します。
 
-# �r���h���@(Javascript)
-1. �t�@�C�����ꎮ�AWeb�T�[�o�֔z�u���܂��B
-1. Web�T�[�o�́AHttps�ŃA�N�Z�X�ł�������K�v�ƂȂ�܂��B
-1. �����p�ł���u���E�U�́AChrome�݂̂ł��B�ŐV�ł�Chrome�Ŏ��s���Ă��������B
+# ビルド方法(Javascript)
+1. ファイルを一式、Webサーバへ配置します。
+1. Webサーバは、Httpsでアクセスできる環境が必要となります。
+1. ご利用できるブラウザは、Chromeのみです。最新版のChromeで実行してください。
 
-# ���s���@
+# 実行方法
 
-1. micro:bit��LED�ɓd�����������܂��B
-1. micro:bit��5x5LED�Ɂ����\������Ă��邱�Ƃ��m�F���܂��B
-1. Chrome��Web�T�[�o�ɔz�u����URL��\�����܂��B
-1. �u���E�U���'connect'�{�^�����������܂��B
-1. �y�A�����O�ݒ��ʂ��\�������̂ŁA���̈ꗗ����A'kirakirabit'��I�����܂��B
-1. ����ɐڑ��ł���ƁA�{�^���̉E����'connect'�̕\��������܂��B
-1. ���Ƃ́A�X���C�_�[�𑀍삷�邱�ƂŎ��R�ɐF��ύX�ł��܂��B
-1. �u���E�U���'Disconnect'�{�^������������ƁABluetooth�̐ڑ�����������܂��BLED���������܂��B
+1. micro:bitとLEDに電源を供給します。
+1. micro:bitの5x5LEDに□が表示されていることを確認します。
+1. ChromeでWebサーバに配置したURLを表示します。
+1. ブラウザ上の'connect'ボタンを押下します。
+1. ペアリング設定画面が表示されるので、その一覧から、'kirakirabit'を選択します。
+1. 正常に接続できると、ボタンの右側に'connect'の表示がされます。
+1. あとは、スライダーを操作することで自由に色を変更できます。
+1. ブラウザ上の'Disconnect'ボタンを押下すると、Bluetoothの接続が解除されます。LEDも消灯します。
 
-# �I�v�V����
+#公開URL
+下記のURLから試すことができます。
+Chromeを利用してください。
+https://s3-ap-northeast-1.amazonaws.com/microbitble/webble.html
 
-�T���v���v���O�����́A[kirakira:bit](https://www.switch-science.com/catalog/3923/)��LED40�ł����AKitronik��[ZIP Halo for the BBC micro:bit](https://www.switch-science.com/catalog/3484/)�ł����삵�܂��B
+# オプション
+
+サンプルプログラムは、[kirakira:bit](https://www.switch-science.com/catalog/3923/)のLED40個ですが、Kitronikの[ZIP Halo for the BBC micro:bit](https://www.switch-science.com/catalog/3484/)でも動作します。
 
 ![Image](https://raw.githubusercontent.com/carcon999/kirakira_webble/master/img/20180911_000408.jpg)
 
-���̏ꍇ�́AArduino���̃v���O������LED�|�[�g�ԍ����P�Ԃ���O�Ԃ𗘗p����悤�ɕύX���Ă��������B
+その場合は、Arduino側のプログラムのLEDポート番号を１番から０番を利用するように変更してください。
 
 ```c
-//#define LED_PIN         1     // LED�o��PIN�ԍ�
-#define LED_PIN         0     // LED�o��PIN�ԍ� ������
+//#define LED_PIN         1     // LED出力PIN番号
+#define LED_PIN         0     // LED出力PIN番号 こちら
 ```
 
-# �u���O�Љ�
+# ブログ紹介
 
-������̃u���O�ł��A�{���̓��e��������Ă��܂��̂ŁA���킹�Ă������������B
+こちらのブログでも、本件の内容を説明していますので、合わせてご覧ください。
 
-[Web Bluetooth API���g����Neopixel�𐧌䂷��](https://blogs.yahoo.co.jp/carcon999/40242528.html)
+[Web Bluetooth APIを使ってNeopixelを制御する](https://blogs.yahoo.co.jp/carcon999/40242528.html)
